@@ -9,6 +9,6 @@ extern double GetDeltaTime();
 extern double GetScreenX();
 extern double GetScreenY();
 extern double GetScreenZ();
-
+extern bool gSuperMode;
 
 #endif

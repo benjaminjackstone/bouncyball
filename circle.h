@@ -17,10 +17,15 @@ public:
 	void SetZ(double new_z);
 	void SetIncZ(double inc);
 	void SetIncX(double inc);
+	void SetSuperMode(bool s) { mSuperMode = s; };
 	void SetIncY(double inc);
+	bool GetSuperMode() { return mSuperMode; };
 	double GetX();
 	double GetY();
 	double GetR();
+	double GetRed() { return mr; };
+	double GetGreen() { return mg; };
+	double GetBlue() { return mb; };
 	double GetZ();
 	double GetIncZ();
 	double GetIncX();
@@ -30,6 +35,7 @@ protected:
 	double mradius;
 	double mr, mg, mb;
 	double mincX, mincY, mincZ;
+	double mSuperMode;
 private:
 };
 

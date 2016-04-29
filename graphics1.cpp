@@ -4,6 +4,7 @@
 #include <time.h>
 #include "graphics1.h"
 #include "circle.h"
+#include "point.h"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -15,11 +16,12 @@ double screen_z = 2000;
 double dT = GetDeltaTime();
 int SIZE = 10;
 double GRAVITY = -0.0003;
-double AIR_FRICTION = .9;
+double AIR_FRICTION = .5;
 bool Left = false;
-bool Right, Front, Back = false;
+bool Right, Front, Back, gSuperMode = false;
 bool bounce = false;
 std::vector<Circle> g_shapes;
+std::vector<Point> gPoints;
 double gX = 0;
 double gY = 0;
 double gZ = -1;
@@ -42,7 +44,7 @@ void DrawLine(double x1, double y1, double z1, double x2, double y2, double z2, 
 {
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(w);
-	glColor3f(.5,.5,.5);
+	glColor3d(.5,.5,.5);
 	glBegin(GL_LINES);
 	glVertex3d(x1, y1, z1);
 	glVertex3d(x2, y2, z2);
@@ -79,23 +81,33 @@ void handleCollisions(void) {
 		double incZ = g_shapes[i].GetIncY();
 		if (x + incX + r >= screen_x + 500) {
 			g_shapes[i].SetIncX(-incX);
+			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
+			gPoints[i] = p;
 		}
 		if (x + incX - r <= -500) {
 			g_shapes[i].SetIncX(-incX);
+			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
+			gPoints[i] = p;
 		}
-		if (z + incZ + r >= screen_z) {
+		if (z + incZ + r >= 3000) {
 			g_shapes[i].SetIncZ(-incZ);
+
 		}
-		if (z + incZ - r <= 0) {
+		if (z - incZ - r<= 0) {
 			g_shapes[i].SetIncZ(-incZ);
 		}
 		if (y + incY + r >= screen_y +500) {
 			g_shapes[i].SetIncY(-incY);
+			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
+			gPoints[i] = p;
 		}
 		if (y + incY - r <= -500) {
 			g_shapes[i].SetIncY(-incY);
+			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
+			gPoints[i] = p;
 		}
 		if (bounce) {
+			// randomize pos or neg direction
 			int neg = std::rand() % 10;
 			double b = (std::rand() % 20) /10.0;
 			if (neg >= 5) b = -b;
@@ -113,6 +125,13 @@ void handleCollisions(void) {
 		g_shapes[i].SetY(y);
 		g_shapes[i].SetZ(z);
 		g_shapes[i].Paint();
+		gPoints[i].Paint();
+	}
+	if(gSuperMode){
+		for (int i = 0; i < gPoints.size(); i++) {
+			g_shapes[i].SetIncX(g_shapes[i].GetIncX() + .01);
+			g_shapes[i].SetIncY(g_shapes[i].GetIncY() + .01);
+		}
 	}
 	bounce = false;
 }
@@ -122,14 +141,14 @@ void display(void)
 	handleCollisions();
 	glLoadIdentity();
 	gluLookAt(eye[0], eye[1], eye[2], at[0], at[1], at[2], 0, 1, 0);
-	DrawLine(1500, -500, 0,    2500, -850, 4000, 50 );
-	DrawLine(2500, -850, 4000, -1000, -850, 4000, 50);
-	DrawLine(2500, -850, 4000, 2500, 2500, 4000, 50);
-	DrawLine(1500, 500, 0,    2500, 2500, 4000, 50);
-	DrawLine(2500, 2500, 4000, -1000, 2000, 4000, 50);
-	DrawLine(-1000, 2000, 4000, -1000, -850, 4000, 50);
-	DrawLine(-1000, -850, 4000, -1500, -1850, 0, 50);
-	DrawLine(-1000, 2000, 4000, -1500, 700, 0, 50);
+	DrawLine(1500, -500, 0,    2500, -850, 4000, 50 ); // bottom left
+	DrawLine(2500, -850, 4000, -800, -550, 5000, 50); // bottom middle
+	DrawLine(2500, -850, 4000, 2500, 2500, 4000, 50); // left support
+	DrawLine(1500, 1000, 0,    2500, 2500, 4000, 50); //top left
+	DrawLine(2500, 2500, 4000, -800, 2200, 5000, 50); // top middle
+	DrawLine(-800, 2200, 5000, -800, -550, 5000, 50); //right support
+	DrawLine(-800, -550, 5000, -1500, -1850, 0, 50); // bottom right
+	DrawLine(-800, 2200, 5000, -1500, 700, 0, 50); //top right
 	glutSwapBuffers();
 	glutPostRedisplay(); //forcing the animation
 }
@@ -201,6 +220,12 @@ void keyboard(unsigned char c, int x, int y)
 		case 'z':
 			bounce = true;
 			break;
+		case 's':
+			gSuperMode = true;
+			break;
+		case 'a':
+			gSuperMode = false;
+			break;
 		default:
 			return; // if we don't care, return without glutPostRedisplay()
 	}
@@ -253,9 +278,11 @@ void mouse(int mouse_button, int state, int x1, int y1)
 		double red = (std::rand() % 101) / 100.0;
 		double green = (std::rand() % 101) / 100.0;
 		double blue = (std::rand() % 101) / 100.0;
-		std::cout << x << ' ' << y << ' ' << radius << ' ' << red << ' ' << green << ' ' << blue << ' ' << std::endl;
+		std::cout << x << ' ' << y << ' ' << z << " " << radius << std::endl;
 		cir = Circle(x, y, z, radius, red, green, blue, incX, incY, incZ);
 		g_shapes.push_back(cir);
+		Point p(0,0,0,0,0,0);
+		gPoints.push_back(p);
 	}
 	if (mouse_button == GLUT_LEFT_BUTTON && state == GLUT_UP) 
 	{
@@ -271,6 +298,10 @@ void mouse(int mouse_button, int state, int x1, int y1)
 // Your initialization code goes here.
 void InitializeMyStuff()
 {
+	Point p(0, 0, 0, 0, 0, 0);
+	for (int i = 0; i < SIZE; i++) {
+		gPoints.push_back(p);
+	}
 	// set material's specular properties
 	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat mat_shininess[] = { 50.0 };
@@ -297,12 +328,12 @@ void InitializeMyStuff()
 		std::vector<double> spawny;
 		double incX = (std::rand() % 100 + 1)/1000.0;
 		double incY = (std::rand() % 200 + 1) / 1000.0;
-		double incZ = (std::rand() % 300 + 1) / 1000.0;
+		double incZ = (std::rand() % 200 + 1) / 1000.0;
 		double radius = std::rand() % 50 + 10;
 		//calc screen values to mod by so it doesn't spawn in a wall
 		double x = (std::rand() % screenx + radius) + incX;
 		double y = (std::rand() % screeny + radius) + incY;
-		double z = (std::rand() % screenz) + incZ;
+		double z = (std::rand() % 1000) + incZ;
 		//vector of previous spawns so check against spawning inside each other
 		for (int j = 0; j < spawnx.size(); j++) {
 			double xdist = spawnx[j][0] - x;
@@ -313,7 +344,7 @@ void InitializeMyStuff()
 			while (hyp < spawnx[j][3] + radius) {
 				x = (std::rand() % screenx + radius) + incX;
 				y = (std::rand() %  screeny + radius) + incY;
-				z = (std::rand() % screenz + radius) + incZ;
+				z = (std::rand() % 1000) + incZ;
 				xdist = spawnx[j][0] - x;
 				zdist = (spawnx[j][2]) - z;
 				hyp = sqrt(xdist*xdist + ydist*ydist + zdist*zdist);

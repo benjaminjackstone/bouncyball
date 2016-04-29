@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 
-const double COLLISION_FRICTION = 0.9999;
-
+const double COLLISION_FRICTION = 0.990;
+extern bool gSuperMode;
 Circle::Circle()
 {
 
@@ -14,7 +14,7 @@ Circle::Circle()
 Circle::Circle(double x1, double y1, double z1, double radius, double r, double g, double b, double incX, double incY, double incZ)
 	:mx1(x1), my1(y1), mz1(z1), mradius(radius), mr(r), mg(g), mb(b), mincX(incX), mincY(incY), mincZ(incZ)
 {
-
+	mSuperMode = false;
 }
 void Circle::SetX(double new_x) {
 	mx1 = new_x;
@@ -32,22 +32,23 @@ double Circle::GetX() {
 	return mx1;
 }
 void Circle::SetIncX(double inc) {
-	if (inc > .3) {
+	/*if (inc > .3) {
 		inc = .29;
-	}
+	}*/
 	mincX = inc;
-}
-double Circle::GetIncX() {
-	return mincX;
-}
-double Circle::GetIncZ() {
-	return mincZ;
+
 }
 void Circle::SetIncZ(double inc) {
 	mincZ = inc;
 }
 void Circle::SetIncY(double inc) {
 	mincY = inc;
+}
+double Circle::GetIncX() {
+	return mincX;
+}
+double Circle::GetIncZ() {
+	return mincZ;
 }
 double Circle::GetIncY() {
 	return mincY;
@@ -68,13 +69,12 @@ void Circle::Gravity(double G, bool l, bool r, bool b, bool f) {
 		mincZ += G;
 		return;
 	}
-	
 	else {
-		if (mincY > .3) {
+		if (mincY > .5) {
 			G = G - .1;
 		}
-		else mincY += G;
 	}
+		 mincY += G;
 }
 
 void Circle::HandleBallCollisions(std::vector<Circle> &g_shapes, int current, double dT, double G) {
@@ -86,9 +86,9 @@ void Circle::HandleBallCollisions(std::vector<Circle> &g_shapes, int current, do
 		if (j == current) {
 			continue;
 		}
-		double x2 = g_shapes[j].GetX() + (g_shapes[j].GetIncX()* dT);
+		double x2 = g_shapes[j].GetX() + (g_shapes[j].GetIncX());
 		double y2 = g_shapes[j].GetY() + g_shapes[j].GetIncY();
-		double z2 = g_shapes[j].GetZ() + g_shapes[j].GetIncZ()* dT;
+		double z2 = g_shapes[j].GetZ() + g_shapes[j].GetIncZ();
 		double r2 = g_shapes[j].GetR();
 		//use distance formula if hypotenuse is less than sum of the radius, its intersecting
 		double x_dist = x2 - x1;
@@ -109,12 +109,20 @@ void Circle::HandleBallCollisions(std::vector<Circle> &g_shapes, int current, do
 			 z_dist = z2 - z1;
 			 hyp = sqrt(x_dist*x_dist + y_dist*y_dist + z_dist*z_dist);
 			 if (hyp <= r1 + r2) {
-				 if (x1 > x2 && g_shapes[current].GetX()) {
-					 g_shapes[current].SetX(g_shapes[current].GetX() + .5);
+				 if (x1 > x2 && (x2+r2+1.5 < GetScreenX()+500)) {
+					 g_shapes[j].SetX(g_shapes[j].GetX() - x2);
 					 continue;
 				 }
-				 if (x2 > x1) {
-					 g_shapes[current].SetX(g_shapes[current].GetX() - .5);
+				 if (x2 > x1 && (x1 + r1 + 1.5 > GetScreenX()+500)) {
+					 g_shapes[current].SetX(g_shapes[current].GetX() - x1);
+					 continue;
+				 }
+				 if (x1 < x2 && (x2 - r2 - 1.5 < GetScreenX() - 500)) {
+					 g_shapes[j].SetX(g_shapes[j].GetX() + x2);
+					 continue;
+				 }
+				 if (x2 < x1 && (x1 - r1 - 1.5 > GetScreenX() - 500)) {
+					 g_shapes[current].SetX(g_shapes[current].GetX() + x1);
 					 continue;
 				 }
 			 }
