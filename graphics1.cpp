@@ -129,7 +129,7 @@ void display(void)
 	DrawLine(2500, 2500, 4000, -1000, 2000, 4000, 50);
 	DrawLine(-1000, 2000, 4000, -1000, -850, 4000, 50);
 	DrawLine(-1000, -850, 4000, -1500, -1850, 0, 50);
-	DrawLine(-1000, 2000, 4000, -1500, 1000, 0, 50);
+	DrawLine(-1000, 2000, 4000, -1500, 700, 0, 50);
 	glutSwapBuffers();
 	glutPostRedisplay(); //forcing the animation
 }
