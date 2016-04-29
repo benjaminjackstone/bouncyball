@@ -15,16 +15,16 @@ double screen_z = 2000;
 double dT = GetDeltaTime();
 int SIZE = 10;
 double GRAVITY = -0.0003;
-double AIR_FRICTION = .9999;
+double AIR_FRICTION = .9;
 bool Left = false;
 bool Right, Front, Back = false;
 bool bounce = false;
 std::vector<Circle> g_shapes;
-double gX = 500;
-double gY = 350;
-double gZ = 2300;
+double gX = 0;
+double gY = 0;
+double gZ = -1;
 double eye[3] = { gX, gY, gZ }; // pick a nice vantage point.
-double at[3] = { 500, 250,     -1000 };
+double at[3] = { 1, 0, 1 };
 double GetDeltaTime()
 {
 	static clock_t start_time = clock();
@@ -37,6 +37,16 @@ double GetDeltaTime()
 	double frames_per_second = (double)current_frame / total_time;
 	double DT = 1.0 / frames_per_second;
 	return DT;
+}
+void DrawLine(double x1, double y1, double z1, double x2, double y2, double z2, double w)
+{
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(w);
+	glColor3f(.5,.5,.5);
+	glBegin(GL_LINES);
+	glVertex3d(x1, y1, z1);
+	glVertex3d(x2, y2, z2);
+	glEnd();
 }
 void SetScreenX(double x) {
 	screen_y = x;
@@ -67,10 +77,10 @@ void handleCollisions(void) {
 		double incX = g_shapes[i].GetIncX();
 		double incY = g_shapes[i].GetIncY();
 		double incZ = g_shapes[i].GetIncY();
-		if (x + incX + r >= screen_x) {
+		if (x + incX + r >= screen_x + 500) {
 			g_shapes[i].SetIncX(-incX);
 		}
-		if (x + incX - r <= 0) {
+		if (x + incX - r <= -500) {
 			g_shapes[i].SetIncX(-incX);
 		}
 		if (z + incZ + r >= screen_z) {
@@ -79,26 +89,26 @@ void handleCollisions(void) {
 		if (z + incZ - r <= 0) {
 			g_shapes[i].SetIncZ(-incZ);
 		}
-		if (y + incY + r >= screen_y) {
+		if (y + incY + r >= screen_y +500) {
 			g_shapes[i].SetIncY(-incY);
 		}
-		if (y + incY - r <= 0) {
+		if (y + incY - r <= -500) {
 			g_shapes[i].SetIncY(-incY);
 		}
 		if (bounce) {
 			int neg = std::rand() % 10;
-			int b = std::rand() % 4;
+			double b = (std::rand() % 20) /10.0;
 			if (neg >= 5) b = -b;
-			int b2 = std::rand() % 4;
+			double b2 = (std::rand() % 20) /10.0;
 			if (neg < 5) b2 = -b2;
 			g_shapes[i].SetIncY(b);
 			g_shapes[i].SetIncX(b2);
 			g_shapes[i].SetIncZ(b2);
 		}
 		//std::cout << g_shapes[i].GetIncY() << std::endl;
-		x += g_shapes[i].GetIncX();
-		y += g_shapes[i].GetIncY();
-		z += g_shapes[i].GetIncZ();
+		x += g_shapes[i].GetIncX() * AIR_FRICTION;
+		y += g_shapes[i].GetIncY()* AIR_FRICTION;
+		z += g_shapes[i].GetIncZ()* AIR_FRICTION;
 		g_shapes[i].SetX(x);
 		g_shapes[i].SetY(y);
 		g_shapes[i].SetZ(z);
@@ -112,6 +122,14 @@ void display(void)
 	handleCollisions();
 	glLoadIdentity();
 	gluLookAt(eye[0], eye[1], eye[2], at[0], at[1], at[2], 0, 1, 0);
+	DrawLine(1500, -500, 0,    2500, -850, 4000, 50 );
+	DrawLine(2500, -850, 4000, -1000, -850, 4000, 50);
+	DrawLine(2500, -850, 4000, 2500, 2500, 4000, 50);
+	DrawLine(1500, 500, 0,    2500, 2500, 4000, 50);
+	DrawLine(2500, 2500, 4000, -1000, 2000, 4000, 50);
+	DrawLine(-1000, 2000, 4000, -1000, -850, 4000, 50);
+	DrawLine(-1000, -850, 4000, -1500, -1850, 0, 50);
+	DrawLine(-1000, 2000, 4000, -1500, 1000, 0, 50);
 	glutSwapBuffers();
 	glutPostRedisplay(); //forcing the animation
 }
@@ -150,6 +168,8 @@ void keyboard(unsigned char c, int x, int y)
 			}
 			Left = true;
 			Right = false;
+			Front = false;
+			Back = false;
 			break;
 		case 'r':
 			Right = true;
@@ -197,7 +217,7 @@ void SetPerspectiveView(int w, int h)
 	glLoadIdentity();
 	double aspectRatio = (GLdouble)w / (GLdouble)h;
 	gluPerspective(
-		/* field of view in degree */ 100.0,
+		/* field of view in degree */ 90.0,
 		/* aspect ratio */ aspectRatio,
 		/* Z near */ 30, /* Z far */ 5000.0);
 	glMatrixMode(GL_MODELVIEW);
@@ -258,7 +278,7 @@ void InitializeMyStuff()
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
 	// set light properties
-	GLfloat light_position[] = { -.5,0,1,1}; //if fourth paramter is a one, then it a positional light. the light goes in every direction
+	GLfloat light_position[] = { -350, 200,-2000,1}; //if fourth paramter is a one, then it a positional light. the light goes in every direction
 											  // if its a zero then the light comes from the vector, or one source
 	GLfloat white_light[] = { 1,1,1,1 };
 	GLfloat low_light[] = { .3,.3,.3,1 };
