@@ -70,8 +70,8 @@ void Circle::Gravity(double G, bool l, bool r, bool b, bool f) {
 		return;
 	}
 	else {
-		if (mincY > .5) {
-			G = G - .1;
+		if (mincY > 1) {
+			G = G - .05;
 		}
 	}
 		 mincY += G;
@@ -95,7 +95,7 @@ void Circle::HandleBallCollisions(std::vector<Circle> &g_shapes, int current, do
 		double y_dist = y2 - y1;
 		double z_dist = z2 - z1;
 		double hyp = sqrt(x_dist*x_dist + y_dist*y_dist + z_dist*z_dist);
-		if (hyp <= r1 + r2) {
+		if (hyp <= r1 + r2 + 5) {
 			g_shapes[current].Collide(current, j, g_shapes, dT);
 			 x1 = g_shapes[current].GetX() + (g_shapes[current].GetIncX()* dT);
 			 y1 = g_shapes[current].GetY() + g_shapes[current].GetIncY()* dT;
@@ -109,20 +109,20 @@ void Circle::HandleBallCollisions(std::vector<Circle> &g_shapes, int current, do
 			 z_dist = z2 - z1;
 			 hyp = sqrt(x_dist*x_dist + y_dist*y_dist + z_dist*z_dist);
 			 if (hyp <= r1 + r2) {
-				 if (x1 > x2 && (x2+r2+1.5 < GetScreenX()+500)) {
-					 g_shapes[j].SetX(g_shapes[j].GetX() - x2);
-					 continue;
-				 }
-				 if (x2 > x1 && (x1 + r1 + 1.5 > GetScreenX()+500)) {
+				 if (x1 < x2 && (x2+r2+1.5 < GetScreenX()+500)) {
 					 g_shapes[current].SetX(g_shapes[current].GetX() - x1);
 					 continue;
 				 }
-				 if (x1 < x2 && (x2 - r2 - 1.5 < GetScreenX() - 500)) {
-					 g_shapes[j].SetX(g_shapes[j].GetX() + x2);
+				 if (x2 < x1 && (x1 + r1 + 1.5 < GetScreenX()+500)) {
+					 g_shapes[j].SetX(g_shapes[j].GetX() - x2);
 					 continue;
 				 }
-				 if (x2 < x1 && (x1 - r1 - 1.5 > GetScreenX() - 500)) {
+				 if (x1 > x2 && (x2 - r2 - 1.5 < GetScreenX() - 500)) {
 					 g_shapes[current].SetX(g_shapes[current].GetX() + x1);
+					 continue;
+				 }
+				 if (x2 > x1 && (x1 - r1 - 1.5 > GetScreenX() - 500)) {
+					 g_shapes[j].SetX(g_shapes[j].GetX() + x2);
 					 continue;
 				 }
 			 }
@@ -163,7 +163,7 @@ void Circle::Collide(int p1, int p2, std::vector<Circle> &particles, double dT)
 	en.z = zdif;
 	et.x = ydif;
 	et.y = -xdif;
-	et.z = -ydif;
+	et.z = zdif;
 
 	// set u values
 	u[0].x = particles[p1].GetIncX();

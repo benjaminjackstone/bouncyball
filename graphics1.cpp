@@ -8,14 +8,13 @@
 #include <cstdlib>
 #include <vector>
 #include <iostream>
-
 // Global Variables (Only what you need!)
 double screen_x = 1000;
 double screen_y = 700;
 double screen_z = 2000;
 double dT = GetDeltaTime();
 int SIZE = 10;
-double GRAVITY = -0.0003;
+double GRAVITY = -0.0005;
 double AIR_FRICTION = .5;
 bool Left = false;
 bool Right, Front, Back, gSuperMode = false;
@@ -89,9 +88,10 @@ void handleCollisions(void) {
 			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
 			gPoints[i] = p;
 		}
-		if (z + incZ + r >= 3000) {
+		if (z + incZ + r >= 2000) {
 			g_shapes[i].SetIncZ(-incZ);
-
+			Point p(x, y, z, g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue());
+			gPoints[i] = p;
 		}
 		if (z - incZ - r<= 0) {
 			g_shapes[i].SetIncZ(-incZ);
@@ -124,8 +124,14 @@ void handleCollisions(void) {
 		g_shapes[i].SetX(x);
 		g_shapes[i].SetY(y);
 		g_shapes[i].SetZ(z);
-		g_shapes[i].Paint();
+		//g_shapes[i].Paint();
 		gPoints[i].Paint();
+		GLfloat mat_amb_diff1[] = { g_shapes[i].GetRed(), g_shapes[i].GetGreen(), g_shapes[i].GetBlue(), 1 };
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_amb_diff1);
+		glPushMatrix();
+		glTranslatef(g_shapes[i].GetX() , g_shapes[i].GetY() , g_shapes[i].GetZ());
+		glutSolidSphere(g_shapes[i].GetR(), 10, 10);
+		glPopMatrix();
 	}
 	if(gSuperMode){
 		for (int i = 0; i < gPoints.size(); i++) {
@@ -138,17 +144,17 @@ void handleCollisions(void) {
 void display(void)
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	handleCollisions();
 	glLoadIdentity();
 	gluLookAt(eye[0], eye[1], eye[2], at[0], at[1], at[2], 0, 1, 0);
-	DrawLine(1500, -500, 0,    2500, -850, 4000, 50 ); // bottom left
-	DrawLine(2500, -850, 4000, -800, -550, 5000, 50); // bottom middle
-	DrawLine(2500, -850, 4000, 2500, 2500, 4000, 50); // left support
-	DrawLine(1500, 1000, 0,    2500, 2500, 4000, 50); //top left
-	DrawLine(2500, 2500, 4000, -800, 2200, 5000, 50); // top middle
+	DrawLine(1500, -500, 0,    2500, -500, 5000, 50 ); // bottom left
+	DrawLine(2200, -500, 4000, -800, -550, 5000, 50); // bottom middle
+	DrawLine(2200, -550, 4000, 2200, 2300, 4000, 50); // left support
+	DrawLine(1500, 1000, 0,    2200, 2300, 4000, 50); //top left
+	DrawLine(2200, 2300, 4000, -800, 2200, 5000, 50); // top middle
 	DrawLine(-800, 2200, 5000, -800, -550, 5000, 50); //right support
 	DrawLine(-800, -550, 5000, -1500, -1850, 0, 50); // bottom right
 	DrawLine(-800, 2200, 5000, -1500, 700, 0, 50); //top right
+	handleCollisions();
 	glutSwapBuffers();
 	glutPostRedisplay(); //forcing the animation
 }
@@ -272,7 +278,7 @@ void mouse(int mouse_button, int state, int x1, int y1)
 		double incY = (std::rand() % 200 + 1) / 1000.0;
 		double incZ = (std::rand() % 100 + 1) / 1000.0;
 		double z = (std::rand() % 2000 + 1);
-		double radius = std::rand() % 50 + 10;
+		double radius = std::rand() % 100 + 20;
 		double x = x1;
 		double y = screen_y - y1;
 		double red = (std::rand() % 101) / 100.0;
@@ -309,7 +315,7 @@ void InitializeMyStuff()
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
 	// set light properties
-	GLfloat light_position[] = { -350, 200,-2000,1}; //if fourth paramter is a one, then it a positional light. the light goes in every direction
+	GLfloat light_position[] = { 1000, 1500,0,0}; //if fourth paramter is a one, then it a positional light. the light goes in every direction
 											  // if its a zero then the light comes from the vector, or one source
 	GLfloat white_light[] = { 1,1,1,1 };
 	GLfloat low_light[] = { .3,.3,.3,1 };
@@ -329,7 +335,7 @@ void InitializeMyStuff()
 		double incX = (std::rand() % 100 + 1)/1000.0;
 		double incY = (std::rand() % 200 + 1) / 1000.0;
 		double incZ = (std::rand() % 200 + 1) / 1000.0;
-		double radius = std::rand() % 50 + 10;
+		double radius = std::rand() % 100 + 20;
 		//calc screen values to mod by so it doesn't spawn in a wall
 		double x = (std::rand() % screenx + radius) + incX;
 		double y = (std::rand() % screeny + radius) + incY;
